@@ -68,6 +68,8 @@ public:
     int advertisingTimeout() const;
     void setAdvertisingTimeout(int advertisingTimeout);
 
+    void setActiveInterfacesCheck(bool enabled);
+
     void addGPioButton(int buttonGpio, bool activeLow = false);
     void enableDBusInterface(QDBusConnection::BusType busType);
 
@@ -87,8 +89,11 @@ private:
     bool m_forceFullName = false;
     QString m_platformName;
     int m_advertisingTimeout = 60;
+    bool m_activeInterfacesCheck = false;
 
     void evaluateNetworkManagerState(NetworkManager::NetworkManagerState state);
+    bool hasActiveOnlineInterface() const;
+    bool noNetworkConfigured() const;
 
 private slots:
     void startService();

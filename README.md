@@ -28,6 +28,7 @@ this repository and it will be installed to /etc/nymea-networkmanager.conf with 
 * `ButtonGpio`: The GPIO number for the button mode. Set to -1 in order to disable it.
 * `ButtonActiveLow`: Can be used to invert the button value. Default is `false`.
 * `DBusBusType`: The bus type for the `dbus` interface. Can be either `system` or `session`
+* `ActiveInterfacesCheck`: Boolean. Default `false`. Only affects the `once` mode. When `false` (default), `once` mode considers the device "configured" if any saved network connection profile exists. When `true`, `once` mode instead checks whether at least one network interface is currently in the `Activated` state with a valid IPv4/IPv6 address — i.e. it must actually be online, not just have a stored profile. Equivalent CLI flag: `-A` / `--active-interfaces-check`.
 
 
 # Using DBUs interface

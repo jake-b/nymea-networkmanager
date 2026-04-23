@@ -85,6 +85,31 @@ void Core::setAdvertisingTimeout(int advertisingTimeout)
     m_advertisingTimeout = advertisingTimeout;
 }
 
+void Core::setActiveInterfacesCheck(bool enabled)
+{
+    m_activeInterfacesCheck = enabled;
+}
+
+bool Core::hasActiveOnlineInterface() const
+{
+    const auto devices = m_networkManager->networkDevices();
+    for (NetworkDevice *dev : devices) {
+        if (dev->deviceState() != NetworkDevice::NetworkDeviceStateActivated)
+            continue;
+        if (dev->ipv4Addresses().isEmpty() && dev->ipv6Addresses().isEmpty())
+            continue;
+        return true;
+    }
+    return false;
+}
+
+bool Core::noNetworkConfigured() const
+{
+    if (m_activeInterfacesCheck)
+        return !hasActiveOnlineInterface();
+    return m_networkManager->networkSettings()->connections().isEmpty();
+}
+
 void Core::addGPioButton(int buttonGpio, bool activeLow)
 {
     if (buttonGpio < 0) {
@@ -276,7 +301,7 @@ void Core::onBluetoothServerRunningChanged(bool running)
             evaluateNetworkManagerState(m_networkManager->state());
             break;
         case ModeOnce:
-            if (m_networkManager->networkSettings()->connections().isEmpty()) {
+            if (noNetworkConfigured()) {
                 qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
                 startService();
             } else {
@@ -331,7 +356,7 @@ void Core::onNetworkManagerAvailableChanged(bool available)
         evaluateNetworkManagerState(m_networkManager->state());
         break;
     case ModeOnce:
-        if (m_networkManager->networkSettings()->connections().isEmpty()) {
+        if (noNetworkConfigured()) {
             qCDebug(dcApplication()) << "Starting the Bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
             startService();
         } else {

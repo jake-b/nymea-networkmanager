@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
     bool forceFullName = false;
     QString platformName = "nymea";
     QString dbusBusType;
+    bool activeInterfacesCheck = false;
 
     Application application(argc, argv);
     application.setOrganizationName("nymea");
@@ -144,6 +145,12 @@ int main(int argc, char *argv[])
 
     QCommandLineOption dbusBusTypeOption({"b", "dbus-type"}, "If given, a DBus interface will be exposed on the chosen DBus bus type (session, system)", "DBUSTYPE");
     parser.addOption(dbusBusTypeOption);
+
+    QCommandLineOption activeInterfacesCheckOption(QStringList() << "A" << "active-interfaces-check",
+        "Only affects \"once\" mode. When set, the bluetooth server starts unless at least one network "
+        "interface is currently activated with a valid IP address. Without this flag, \"once\" mode only "
+        "checks whether saved connection profiles exist.");
+    parser.addOption(activeInterfacesCheckOption);
 
     parser.process(application);
 
@@ -208,6 +215,9 @@ int main(int argc, char *argv[])
             if (settings.contains("DBusBusType"))
                 dbusBusType = settings.value("DBusBusType").toString();
 
+            if (settings.contains("ActiveInterfacesCheck"))
+                activeInterfacesCheck = settings.value("ActiveInterfacesCheck", false).toBool();
+
             break;
         }
     }
@@ -248,6 +258,9 @@ int main(int argc, char *argv[])
 
     if (parser.isSet(dbusBusTypeOption))
         dbusBusType = parser.value(dbusBusTypeOption);
+
+    if (parser.isSet(activeInterfacesCheckOption))
+        activeInterfacesCheck = true;
 
     // All parsed. Validate input:
     if (!timeoutValueOk) {
@@ -294,6 +307,7 @@ int main(int argc, char *argv[])
     core.setAdvertiseName(advertiseName, forceFullName);
     core.setPlatformName(platformName);
     core.addGPioButton(buttonGpio, buttonActiveLow);
+    core.setActiveInterfacesCheck(activeInterfacesCheck);
 
     if (dbusBusType == "system") {
         core.enableDBusInterface(QDBusConnection::SystemBus);
